@@ -15,6 +15,9 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// Version is set during build via ldflags
+var Version = "dev"
+
 func main() {
 	// Carregar variáveis de ambiente
 	if err := godotenv.Load(); err != nil {
@@ -50,7 +53,7 @@ func main() {
 	go monitorInstance.Start()
 
 	// Configurar comandos do bot
-	bot.SetupCommands(telegramBot, db, monitorInstance, scraperRegistry)
+	bot.SetupCommands(telegramBot, db, monitorInstance, scraperRegistry, Version)
 
 	// Aguardar sinal de interrupção
 	sigChan := make(chan os.Signal, 1)

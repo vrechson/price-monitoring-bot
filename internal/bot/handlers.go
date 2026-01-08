@@ -22,7 +22,7 @@ func escapeHTML(text string) string {
 }
 
 // SetupCommands configura os handlers de comandos do bot
-func SetupCommands(bot *tgbotapi.BotAPI, db *database.DB, monitor *monitor.Monitor, registry *scraper.Registry) {
+func SetupCommands(bot *tgbotapi.BotAPI, db *database.DB, monitor *monitor.Monitor, registry *scraper.Registry, version string) {
 	authorizedChatID, hasAuth := GetAuthorizedChatID()
 
 	u := tgbotapi.NewUpdate(0)
@@ -52,7 +52,7 @@ func SetupCommands(bot *tgbotapi.BotAPI, db *database.DB, monitor *monitor.Monit
 		}
 
 		// Comandos públicos (não precisam de autorização)
-		isPublicCommand := command == "/start" || command == "/help"
+		isPublicCommand := command == "/start" || command == "/help" || command == "/version"
 
 		// Verificar autorização se configurado (exceto para comandos públicos)
 		if !isPublicCommand && hasAuth && update.Message.Chat.ID != authorizedChatID {
@@ -64,6 +64,8 @@ func SetupCommands(bot *tgbotapi.BotAPI, db *database.DB, monitor *monitor.Monit
 		switch command {
 		case "/start", "/help":
 			handleHelp(bot, update.Message.Chat.ID)
+		case "/version":
+			handleVersion(bot, update.Message.Chat.ID, version)
 		case "/add":
 			handleAddProduct(bot, update.Message, db, registry)
 		case "/list":
@@ -97,6 +99,8 @@ Exemplo: /remove 1
 <b>/check &lt;id&gt;</b> - Verificar preço de um produto agora
 Exemplo: /check 1
 
+<b>/version</b> - Mostrar versão do bot
+
 <b>/help</b> - Mostrar esta mensagem de ajuda
 `
 
@@ -104,6 +108,18 @@ Exemplo: /check 1
 	msg.ParseMode = "HTML"
 	if _, err := bot.Send(msg); err != nil {
 		log.Printf("Erro ao enviar mensagem de ajuda: %v", err)
+		// Tentar sem formatação se houver erro
+		msg.ParseMode = ""
+		bot.Send(msg)
+	}
+}
+
+func handleVersion(bot *tgbotapi.BotAPI, chatID int64, version string) {
+	versionText := fmt.Sprintf("🤖 <b>Bot de Monitoramento de Preços</b>\n\n📦 Versão: <b>%s</b>", version)
+	msg := tgbotapi.NewMessage(chatID, versionText)
+	msg.ParseMode = "HTML"
+	if _, err := bot.Send(msg); err != nil {
+		log.Printf("Erro ao enviar mensagem de versão: %v", err)
 		// Tentar sem formatação se houver erro
 		msg.ParseMode = ""
 		bot.Send(msg)
