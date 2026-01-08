@@ -79,7 +79,7 @@ fi
 
 # Build the application
 echo -e "${YELLOW}Building application...${NC}"
-go build -o "${BINARY_NAME}" -ldflags="-s -w" ./cmd/bot/main.go
+CGO_ENABLED=1 go build -o "${BINARY_NAME}" -ldflags="-s -w" ./cmd/bot/main.go
 
 if [ ! -f "${BINARY_NAME}" ]; then
     echo -e "${RED}Error: Build failed!${NC}"

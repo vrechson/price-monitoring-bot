@@ -43,8 +43,17 @@ mkdir -p "${BUILD_DIR}"
 # Set Go environment variables for Raspberry Pi (ARM64)
 export GOOS=linux
 export GOARCH=arm64
+export CGO_ENABLED=1
+export CC=aarch64-linux-gnu-gcc
 
-echo -e "${YELLOW}Cross-compiling for Linux ARM64...${NC}"
+# Check if cross-compiler is available
+if ! command -v aarch64-linux-gnu-gcc &> /dev/null; then
+    echo -e "${RED}Error: Cross-compiler 'aarch64-linux-gnu-gcc' not found!${NC}"
+    echo -e "${YELLOW}Install it with: sudo apt-get install gcc-aarch64-linux-gnu${NC}"
+    exit 1
+fi
+
+echo -e "${YELLOW}Cross-compiling for Linux ARM64 with CGO enabled...${NC}"
 go build -o "${BUILD_DIR}/${BINARY_NAME}" -ldflags="-s -w -X main.Version=${NEW_VERSION}" ./cmd/bot/main.go
 
 if [ ! -f "${BUILD_DIR}/${BINARY_NAME}" ]; then
